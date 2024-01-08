@@ -56,19 +56,20 @@
     .then(data => {
         if (data.message === 'Login Successfully!!!') {
             alert(`Message: ${data.message}`);
-            window.location.href = `/redirecttt/${data.face_user}`;
+            exit();
+            window.location.href = `/redir`;
         } else {
-            alert('Login Failed. Face not recognized.');
-            // Handle login failure, if necessary
+            alert(`Message: ${data.message}`);
+            exit();
         }
     })
     .catch(error => {
         console.error('Fetch Error:', error);
-        // Handle other errors, if necessary
+       
     });
 }
 
-  // Moving the script below to ensure elements are loaded
+  
   var errorMessage = "{{ error_message }}";
   if (errorMessage !== "") {
     document.getElementById("errorMessage").innerHTML = errorMessage;

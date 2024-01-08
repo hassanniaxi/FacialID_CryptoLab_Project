@@ -43,7 +43,7 @@ def register():
         # Check if passwords match
         if password != confirm_password:
             error1="Passwords do not match!"
-            return render_template('face_login.html', error_message2=error1)
+            return render_template('register.html', error_message2=error1)
 
         # Check if email already exists in the database
         conn = sqlite3.connect('users_database.db')
@@ -54,7 +54,7 @@ def register():
 
         if user:
             error2="Email already registered!"
-            return render_template('face_login.html', error_message1=error2)
+            return render_template('register.html', error_message1=error2)
 
         # Hash the password 
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
@@ -67,9 +67,9 @@ def register():
         curr_user = name
         conn.close()
         
-        return render_template('logged.html', user_name=curr_user)
+        return render_template('homePage.html', user_name=curr_user)
 
-    return render_template('face_login.html')
+    return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -89,7 +89,7 @@ def login():
              session['email'] = email  # Store user's email in session
              curr_user = user[1]  # Fetch the user's name (assuming it's at index 1)
              conn.close()
-             return render_template('logged.html', user_name=curr_user)
+             return render_template('homePage.html', user_name=curr_user)
           else:
              conn.close()
              error = "Password is incorrect!"
@@ -99,7 +99,7 @@ def login():
             error = "User doesn't exist!"
             return render_template('index.html', error_message=error)
 
-    return render_template('face_login.html')
+    return render_template('register.html')
 
 
 @app.route('/logout')
@@ -153,7 +153,8 @@ def recognize_face():
         if pics == 200:
             cap.release()
             cv2.destroyAllWindows()
-            return jsonify({'message': "Face Registered", 'face_user': name_registered})
+            session['_name'] = name_registered
+            return jsonify({'message': "Face Registered"})
               
         cv2.imshow('Face Detector', frame)
  
@@ -163,14 +164,9 @@ def recognize_face():
     cap.release()
     cv2.destroyAllWindows()
  
-@app.route('/redirecttt/<user_name>')
-def redirect_page(user_name):
-    return render_template('redirect.html', user_name=user_name)
-
-@app.route('/logged/<user_name>')
-def logged(user_name): 
-    return render_template('logged.html', user_name=user_name)
-
+@app.route('/redir')
+def redirect_page():
+    return render_template('redirectPage.html')
 
 
 data_path = 'database/'
@@ -221,6 +217,7 @@ def face_detector(img, size=0.5):
 
     return img, roi
 
+
 @app.route('/loginByFace')
 def faceLogin():
     model = train_data_classifier()
@@ -237,21 +234,21 @@ def faceLogin():
 
                 if result[1] < 60:  
                     P_name_with_extension = os.path.basename(path[0])
-                    # Split the filename by dots and take the first part
                     P_name_parts = P_name_with_extension.split('.')
-                    P_name = P_name_parts[0]
-                    print("Recognized:", P_name)  
+                    P_name = P_name_parts[0] 
                     cv2.putText(image, P_name, (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
                     count+=1
                     if count == 10:
                         cap.release()
                         cv2.destroyAllWindows()
-                        return jsonify({'message': "Login Successfully!!!", 'face_user': P_name})
-                else:
+                        
+                        session['_name'] = P_name
+                        return jsonify({'message': "Login Successfully!!!"})
+                else: 
                     cv2.putText(image, "Unknown Face", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
             except Exception as e:
                 cv2.putText(image, "Face Not Found", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
-                pass
+                pass 
         else:
             cv2.putText(image, "No Face Found", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
 
@@ -265,6 +262,12 @@ def faceLogin():
 
     cap.release() 
     cv2.destroyAllWindows()
+
+
+@app.route('/homePage')
+def logged(): 
+    nname = session.get('_name')
+    return render_template('homePage.html', user_name=nname)
 
 if __name__ == '__main__':
     init_db()

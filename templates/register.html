@@ -68,16 +68,16 @@ var errorMessage1 = "{{ error_message1 }}";
         if(data.message == "Face already exists!")
         {
           alert(data.message);
-          closeCameraModal();
           exit();
         }
         else if (data.message === 'Face Registered') {
     alert(`Message: ${data.message}`);
-    window.location.href = `/redirecttt/${data.face_user}`;
-    closeCameraModal();
+    exit();
+    window.location.href = `/redir`;
 }
 else{
   alert(`Message: ${data.message}`);
+  exit();
 }
         }) 
         .catch(error => console.error('Error:', error));
