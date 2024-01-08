@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FacialID CryptoLab</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='loginstyle.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h1>FacialID CryptoLab</h1>
+    <div class="form-container">
+        <form id="FacialLoginForm" class="form">
+            <h2>Login By Facial ID</h2>
+            <button type="button" onclick="faceLogin()">Recognize Face</button>
+            <p id="recognizedName"></p>
+            <p>Don't have an account? <a style="color:blue" href="{{ url_for('register') }}">Register</a></p>
+        </form>
+
+        <div class="divider"></div>
+
+        <form id="ActualLoginForm" class="form" method="POST" action="{{ url_for('login') }}">
+            <h2>Login</h2>
+            <input type="email" id="loginEmail" name="Email" placeholder="Email" required>
+            <input type="password" id="loginPassword" name="Password" placeholder="Password" required>
+            <p id="errorMessage" style="color: red; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">{{ error_message }}</p>
+            <button type="submit">Login</button>
+            <p>Don't have an account? <a style="color:blue" href="{{ url_for('register') }}">Register</a></p>
+        </form>
+    </div>
+</div>
+
+<div id="cameraModal" class="modal" style="display: none;">
+    <video id="videoElement" autoplay playsinline></video>
+    <div class="button-container">
+        <button onclick="closeCameraModal()">Close</button>
+        <button onclick="captureFrame()">Capture</button>
+    </div>
+</div>
+
+<script>
+  function faceLogin() {
+    fetch('/loginByFace', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.message === 'Login Successfully!!!') {
+            alert(`Message: ${data.message}`);
+            window.location.href = `/redirecttt/${data.face_user}`;
+        } else {
+            alert('Login Failed. Face not recognized.');
+            // Handle login failure, if necessary
+        }
+    })
+    .catch(error => {
+        console.error('Fetch Error:', error);
+        // Handle other errors, if necessary
+    });
+}
+
+document.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent the default Enter key behavior
+        handleLogin();
+    }
+});
+
+
+document.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        handleLogin();
+    }
+});
+
+  // Moving the script below to ensure elements are loaded
+  var errorMessage = "{{ error_message }}";
+  if (errorMessage !== "") {
+    document.getElementById("errorMessage").innerHTML = errorMessage;
+    document.getElementById("errorMessage").style.display = "block";
+  }
+</script>
+
+</body>
+</html>

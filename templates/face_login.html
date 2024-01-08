@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FacialID CryptoLab</title>
+  <link rel="stylesheet" type="text/css" href="static/styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>FacialID CryptoLab</h1>
+    <div class="form-container">
+      <form id="FacialRegisterForm" class="form">
+        <h2>Register By Facial ID</h2>
+        <br>
+        <input type="text" id="m" placeholder="Name" required>
+        <button type="button" onclick="recognizeFace()">Register Face</button>
+        <p>Already registered? <a style="color:blue" href="http://127.0.0.1:5000/">Login</a></p>
+      </form>
+
+      <div class="divider"></div>
+      <form id="RegisterForm" class="form" method="POST" action="/register">
+        <h2>Register</h2>
+        <input type="text" name="Name1" placeholder="Name" required>
+        <input type="email" name="Email" placeholder="Email" required>
+        <input type="password" name="Password" placeholder="Password" required>
+        <input type="password" name="ConfirmPassword" placeholder="Confirm Password" required>
+        <p id="errorMessage2" style="color: red; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif ";>{{ error_message2 }}</p>
+        <p id="errorMessage1" style="color: red; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";>{{ error_message1 }}</p>
+        <button type="submit">Register</button>   
+        <p>Already registered? <a style="color:blue" href="http://127.0.0.1:5000/">Login</a></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+
+var errorMessage1 = "{{ error_message1 }}";
+    if (errorMessage1 !== "") {
+        document.getElementById("errorMessage1").innerHTML = errorMessage1;
+        document.getElementById("errorMessage1").style.display = "block";
+    }
+    var errorMessage2 = "{{ error_message2 }}";
+    if (errorMessage2 !== "") {
+        document.getElementById("errorMessage2").innerHTML = errorMessage2;
+        document.getElementById("errorMessage2").style.display = "block";
+    }
+
+    let nameInput = document.getElementById('m');
+
+    function recognizeFace() {
+      let name = nameInput.value.trim();
+      if (!name) {
+        alert("Please enter a name before recognizing.");
+        return;
+      }
+
+      fetch('/register_face', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `&Name=${encodeURIComponent(nameInput.value)}`,
+      })
+        .then(response => response.json())
+        .then(data => {
+        if(data.message == "Face already exists!")
+        {
+          alert(data.message);
+          closeCameraModal();
+          exit();
+        }
+        if (data.message === 'Face Registered') {
+    alert(`Message: ${data.message}`);
+    window.location.href = `/redirecttt/${data.face_user}`;
+    closeCameraModal();
+}
+        }) 
+        .catch(error => console.error('Error:', error));
+    }
+  </script>
+</body>
+</html>

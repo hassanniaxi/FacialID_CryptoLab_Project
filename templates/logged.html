@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ceaser Cipher</title>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+        .header {
+            width: 100%;
+            background-color: #333;
+            color: black;
+            padding: 0px 5px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .logout-btn {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 15px;
+            cursor: pointer;
+            float: right;
+            margin-right: 20px;
+        }
+
+        .logout-btn:hover {
+            background-color: #c9302c;
+        }
+	body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+			position: fixed;
+			top: 25%;
+			left: 20%;
+			margin-top: 25px;
+			margin-left: 25px;
+			background-image: url(/static/img/img.jpg);     
+			background-repeat: no-repeat;
+			background-size: 100% 100%;
+			background-attachment: fixed;
+			color: white
+        }
+        .container {
+            margin: 50px auto;
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        input {
+            width: 25%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button {
+            background-color: #0074d9;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: green;
+        }
+		p{
+		text-align:left;
+		}
+		.footer {
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        padding: 10px;
+        position: footer;
+		bottom: footer;
+    }
+		
+	</style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 class="profile-name" id="profilename" style="font-size: 30px;">{{ user_name }}<button class="logout-btn" onclick="logout()">Logout</button></h1>
+    </div>
+
+    <h1>Welcome to Cryptography</h1>
+	<h3>Select Your Choice</h3>
+    <a href="albash.html"><button id="encrypt-button">Al-Bash </button></a>
+    <a href="descrypt.html"><button id="decrypt-button">Hill Cipher </button></a>
+	<a href="bruteforce.html"><button id="decrypt-button">XOR Cipher</button></a> 
+<script>
+    function logout()
+    {
+        fetch('/logout')
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url; 
+                }
+            })
+            .catch(error => {
+                console.error('Logout failed:', error);
+            });
+    }
+  var user_name = "{{ user_name }}";
+        if (user_name !== "") {
+            document.getElementById("user_name").innerHTML = user_name;
+            document.getElementById("user_name").style.fontSize = "30px";
+            document.getElementById("user_name").style.display = "block";}
+</script>
+</body>
+</html>
