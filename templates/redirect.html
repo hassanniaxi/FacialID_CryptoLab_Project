@@ -5,20 +5,20 @@
     <meta http-equiv="refresh" content="5; ">
 </head>
 <body>
-    <p>Redirecting to the home page in <span id="countdown">5</span> seconds...</p>
+    <p>Redirecting to the home page in <span id="countdown">3</span> seconds...</p>
 </body>
 <script>
     var countdownDisplay = document.getElementById('countdown');
-    var count = 5; // Set the initial countdown value in seconds
+    var count = 3;
     countdownDisplay.textContent = count;
 
     var countdown = setInterval(function() {
         count--;
         countdownDisplay.textContent = count;
         if (count <= 0) {
-            clearInterval(countdown); // Stop the countdown when it reaches zero
+            clearInterval(countdown); 
             var user_name = "{{ user_name }}";
-            window.location.href = `/logged/${user_name}`; // Redirect after countdown
+            window.location.href = `/logged/${user_name}`; 
         }
     }, 1000); // Update countdown every second (1000 milliseconds)
 </script>

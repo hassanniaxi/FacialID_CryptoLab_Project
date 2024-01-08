@@ -68,20 +68,6 @@
     });
 }
 
-document.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        e.preventDefault(); // Prevent the default Enter key behavior
-        handleLogin();
-    }
-});
-
-
-document.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        handleLogin();
-    }
-});
-
   // Moving the script below to ensure elements are loaded
   var errorMessage = "{{ error_message }}";
   if (errorMessage !== "") {

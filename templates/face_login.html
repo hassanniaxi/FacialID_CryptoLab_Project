@@ -71,10 +71,13 @@ var errorMessage1 = "{{ error_message1 }}";
           closeCameraModal();
           exit();
         }
-        if (data.message === 'Face Registered') {
+        else if (data.message === 'Face Registered') {
     alert(`Message: ${data.message}`);
     window.location.href = `/redirecttt/${data.face_user}`;
     closeCameraModal();
+}
+else{
+  alert(`Message: ${data.message}`);
 }
         }) 
         .catch(error => console.error('Error:', error));

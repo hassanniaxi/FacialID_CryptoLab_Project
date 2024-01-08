@@ -2,15 +2,11 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 import cv2
 import os
 import sqlite3
-import hashlib
-import json
 import numpy as np
-import base64
 import hashlib
 from os import listdir
 from os.path import isfile, join
-import time
-from PIL import Image
+
 
 app = Flask(__name__)
 
@@ -20,6 +16,7 @@ def index():
     return render_template('index.html')
 
 app.secret_key = os.urandom(24)  # Generating a secure secret key
+
 def init_db():
     conn = sqlite3.connect('users_database.db')
     cursor = conn.cursor()
@@ -157,11 +154,11 @@ def recognize_face():
             cap.release()
             cv2.destroyAllWindows()
             return jsonify({'message': "Face Registered", 'face_user': name_registered})
-             
+              
         cv2.imshow('Face Detector', frame)
  
         if cv2.waitKey(1) == 13: # Check for 'Enter' key press to exit
-            break
+            return jsonify({'message': "Dataset does'nt Fully Completed"})
 
     cap.release()
     cv2.destroyAllWindows()
@@ -169,15 +166,15 @@ def recognize_face():
 @app.route('/redirecttt/<user_name>')
 def redirect_page(user_name):
     return render_template('redirect.html', user_name=user_name)
-    
+
 @app.route('/logged/<user_name>')
 def logged(user_name): 
     return render_template('logged.html', user_name=user_name)
 
 
- 
+
 data_path = 'database/'
-path = [os.path.join(data_path, f) for f in os.listdir(data_path)]# if f.endswith('.jpg')]
+path = [os.path.join(data_path, f) for f in os.listdir(data_path)]
 
 def train_data_classifier():
     Training_Data, Labels = [], []
@@ -208,14 +205,11 @@ def train_data_classifier():
 
     return model
 
-# model = train_data_classifier()
 
-
-face_classifier2 = cv2.CascadeClassifier(cv2.data.haarcascades +"haarcascade_frontalface_default.xml")
 
 def face_detector(img, size=0.5):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = face_classifier2.detectMultiScale(gray, 1.5, 7)
+    faces = face_classifier.detectMultiScale(gray, 1.5, 7)
 
     if len(faces) == 0:
         return img, None
@@ -229,7 +223,6 @@ def face_detector(img, size=0.5):
 
 @app.route('/loginByFace')
 def faceLogin():
-    #model = train_data_classifier()
     model = train_data_classifier()
     cap = cv2.VideoCapture(0)
     count = 0
@@ -250,7 +243,7 @@ def faceLogin():
                     print("Recognized:", P_name)  
                     cv2.putText(image, P_name, (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
                     count+=1
-                    if count == 5:
+                    if count == 10:
                         cap.release()
                         cv2.destroyAllWindows()
                         return jsonify({'message': "Login Successfully!!!", 'face_user': P_name})
