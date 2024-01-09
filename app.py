@@ -139,7 +139,7 @@ def recognize_face():
             if not os.path.exists(Databasee):
                 os.makedirs(Databasee)
             
-            face_database_path = [file for file in os.listdir(Databasee) if file.lower().endswith('.jpg')] #os.path.join(Databasee, f"{name_registered}.{img_id}.jpg")
+            face_database_path = [file for file in os.listdir(Databasee) if file.lower().endswith('.jpg')] 
             if any(os.path.isfile(os.path.join(Databasee, file)) for file in face_database_path):
                 cv2.putText(frame, "Face already exists!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                 cap.release()
