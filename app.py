@@ -139,9 +139,11 @@ def recognize_face():
             if not os.path.exists(Databasee):
                 os.makedirs(Databasee)
             
-            face_database_path = os.path.join(Databasee, f"{name_registered}.{img_id}.jpg")
-            if os.path.isfile(face_database_path):
+            face_database_path = [file for file in os.listdir(Databasee) if file.lower().endswith('.jpg')] #os.path.join(Databasee, f"{name_registered}.{img_id}.jpg")
+            if any(os.path.isfile(os.path.join(Databasee, file)) for file in face_database_path):
                 cv2.putText(frame, "Face already exists!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                cap.release()
+                cv2.destroyAllWindows() 
                 return jsonify({'message': "Face already exists!"})
             else:
                 cv2.imwrite(face_database_path, face)
@@ -159,6 +161,8 @@ def recognize_face():
         cv2.imshow('Face Detector', frame)
  
         if cv2.waitKey(1) == 13: # Check for 'Enter' key press to exit
+            cap.release()
+            cv2.destroyAllWindows() 
             return jsonify({'message': "Dataset does'nt Fully Completed"})
 
     cap.release()
@@ -168,7 +172,7 @@ def recognize_face():
 def redirect_page():
     return render_template('redirectPage.html')
 
-
+   
 data_path = 'database/'
 path = [os.path.join(data_path, f) for f in os.listdir(data_path)]
 
@@ -240,7 +244,7 @@ def faceLogin():
                     count+=1
                     if count == 10:
                         cap.release()
-                        cv2.destroyAllWindows()
+                        cv2.destroyAllWindows()  
                         
                         session['_name'] = P_name
                         return jsonify({'message': "Login Successfully!!!"})
