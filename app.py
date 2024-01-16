@@ -9,12 +9,13 @@ from os.path import isfile, join
 
 
 app = Flask(__name__)
-
+data_path = 'database/'
+path = [f for f in listdir(data_path) if isfile(join(data_path,f))]
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
+ 
 app.secret_key = os.urandom(24)  # Generating a secure secret key
 
 def init_db():
@@ -109,10 +110,41 @@ def logout():
 
 
 
+def train_data_classifier():
+    Training_Data, Labels = [], []
+
+    for i, file in enumerate(path):
+        image_path = data_path + path[i]
+        images = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+        Training_Data.append(np.asarray(images, dtype=np.uint8))
+        Labels.append(i)
+
+
+    Labels = np.asarray(Labels, dtype=np.int32)
+    model = cv2.face.LBPHFaceRecognizer_create()
+    model.train(np.asarray(Training_Data), np.asarray(Labels))
+
+    return model
+
+def face_detector(img, size=0.5):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_classifier.detectMultiScale(gray, 1.3, 5)
+
+    if len(faces) == 0:
+        return img, []
+
+    for (x, y, w, h) in faces:
+        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        roi = img[y:y + h, x:x + w]
+        roi = cv2.resize(roi, (200, 200))
+
+    return img, roi
+
+
 face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + '/haarcascade_frontalface_default.xml')
 def face_extractor(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = face_classifier.detectMultiScale(gray, 1.5, 7)
+    faces = face_classifier.detectMultiScale(gray, 1.3, 5)
     
     if len(faces) == 0:
      return None
@@ -128,29 +160,41 @@ def face_extractor(img):
 def recognize_face():
     name_registered = request.form['Name']
     cap = cv2.VideoCapture(0)
-    img_id = 0
+    model = train_data_classifier()
     Databasee = 'database/'
-    pics =0 
+    pics =1
     while True:
-        ret, frame = cap.read() 
-        face = face_extractor(frame)
-        if face is not None:
-            img_id += 1
+        ret, frame = cap.read()
+        image, face = face_detector(frame) 
+        if face_extractor(frame) is not None: 
             if not os.path.exists(Databasee):
                 os.makedirs(Databasee)
             
-            face_database_path = [file for file in os.listdir(Databasee) if file.lower().endswith('.jpg')] 
-            if any(os.path.isfile(os.path.join(Databasee, file)) for file in face_database_path):
-                cv2.putText(frame, "Face already exists!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+            result = model.predict(face)
+
+            if result[1] < 500:
+                confidence = int(100*(1-(result[1])/300))
+
+            if confidence > 100: 
+                cv2.putText(frame, "Face already exists!", (250, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 cap.release()
                 cv2.destroyAllWindows() 
-                return jsonify({'message': "Face already exists!"})
+                P_name_with_extension = os.path.basename(path[0])
+                P_name_parts = P_name_with_extension.split('.')
+                P_name = P_name_parts[0] 
+                return jsonify({'message': "Face already exist as: "+ P_name})
             else:
+                # face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+                file_name = f"{name_registered}.{pics}.jpg"
+                face_database_path = os.path.join('database', file_name)
                 cv2.imwrite(face_database_path, face)
-                cv2.putText(frame, "Face Registering..", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.putText(frame, "Face Registering..", (250, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                # cv2.imshow('Face Cropper',face)
                 pics+=1
         else: 
-            cv2.putText(frame, "No face found", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.putText(frame, "No face found", (250, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            pass
  
         if pics == 200:
             cap.release()
@@ -173,53 +217,8 @@ def redirect_page():
     return render_template('redirectPage.html')
 
    
-data_path = 'database/'
-path = [os.path.join(data_path, f) for f in os.listdir(data_path)]
-
-def train_data_classifier():
-    Training_Data, Labels = [], []
-
-    for i, file in enumerate(os.listdir(data_path)):
-        image_path = os.path.join(data_path, file)
-
-        try:
-            img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-            if img is None or img.size == 0:
-                print(f"Error reading image: {image_path}")
-                continue
-
-            img = cv2.resize(img, (200, 200))
-            Training_Data.append(np.asarray(img, dtype=np.uint8))
-            Labels.append(i)
-        except Exception as e:
-            print(f"Exception occurred: {str(e)}")
-
-    if not Training_Data or not Labels:
-        print("No valid training data found.")
-        return None
-
-    Labels = np.asarray(Labels, dtype=np.int32)
-
-    model = cv2.face.LBPHFaceRecognizer_create()
-    model.train(np.asarray(Training_Data), np.asarray(Labels))
-
-    return model
-
-
-
-def face_detector(img, size=0.5):
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = face_classifier.detectMultiScale(gray, 1.5, 7)
-
-    if len(faces) == 0:
-        return img, None
-
-    for (x, y, w, h) in faces:
-        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        roi = img[y:y + h, x:x + w]
-        roi = cv2.resize(roi, (200, 200))
-
-    return img, roi
+# data_path = 'database/'
+# path = [f for f in listdir(data_path) if isfile(join(data_path,f))]#[os.path.join(data_path, f) for f in os.listdir(data_path)]
 
 
 @app.route('/loginByFace')
@@ -230,33 +229,33 @@ def faceLogin():
     while True:
         ret, frame = cap.read()
         image, face = face_detector(frame)
-        
-        if face is not None:
-            try:
-                face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
-                result = model.predict(face)
+        try:
+            face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+            result = model.predict(face)
 
-                if result[1] < 60:  
-                    P_name_with_extension = os.path.basename(path[0])
-                    P_name_parts = P_name_with_extension.split('.')
-                    P_name = P_name_parts[0] 
-                    cv2.putText(image, P_name, (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
-                    count+=1
-                    if count == 10:
-                        cap.release()
-                        cv2.destroyAllWindows()  
-                        
-                        session['_name'] = P_name
-                        return jsonify({'message': "Login Successfully!!!"})
-                else: 
-                    cv2.putText(image, "Unknown Face", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
-            except Exception as e:
-                cv2.putText(image, "Face Not Found", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
-                pass 
-        else:
-            cv2.putText(image, "No Face Found", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+            if result[1] < 500:
+                confidence = int(100*(1-(result[1])/300))
 
-        cv2.imshow('Face Decetor', image)
+            if confidence > 100:
+                P_name_with_extension = os.path.basename(path[0])
+                P_name_parts = P_name_with_extension.split('.')
+                P_name = P_name_parts[0] 
+                cv2.putText(image, P_name, (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+                cv2.imshow('Face Cropper', image)
+                count+=1 
+                if count == 100:
+                    cap.release()
+                    cv2.destroyAllWindows()  
+                    session['_name'] = P_name
+                    return jsonify({'message': "Login Successfully!!!"})
+            else:
+                cv2.putText(image, "Unknown", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+                cv2.imshow('Face Cropper', image)
+
+        except:
+            cv2.putText(image, "Face Not Found", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+            cv2.imshow('Face Cropper', image)
+            pass 
 
         if cv2.waitKey(1) == 13:
             cap.release()
