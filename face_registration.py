@@ -11,7 +11,7 @@ files_in_faceDB = [f for f in os.listdir(face_database_path) if f.endswith('.jpg
 if face_classifier.empty():
     print("Error: Unable to load the Haar cascade classifier.")
     exit()
-name = "farhan"
+name = input("Enter Name: ")
 
 name_registered =name
 

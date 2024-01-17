@@ -9,12 +9,6 @@ import hashlib
 
 app = Flask(__name__)
 
-app.secret_key = os.urandom(24)  # Generating a secure secret key
-
-
-# app.config['SECRET_KEY'] = 'your_secret_key'
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -46,7 +40,7 @@ def register():
         # Check if passwords match
         if password != confirm_password:
             error1="Passwords do not match!"
-            return render_template('face_login.html', error_message2=error1)
+            return render_template('register.html', error_message2=error1)
 
         # Check if email already exists in the database
         conn = sqlite3.connect('users_database.db')
@@ -57,7 +51,7 @@ def register():
 
         if user:
             error2="Email already registered!"
-            return render_template('homePage.html', error_message1=error2)
+            return render_template('register.html', error_message1=error2)
 
         # Hash the password 
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
@@ -183,18 +177,18 @@ def recognize_face():
                 os.makedirs(face_database_path)
 
             # face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY) 
-            face = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            face = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             result = model.predict(face)
 
             if result[1] < 100:
-                confidence = int(100 * (1 - (result[1]) / 300))
+                confidence = int(100 * (1 - (result[1]) / 300)) 
                 i=confidence
 
             if confidence > 90:
                 i = (i % len(files_in_faceDB))
                 cv2.putText(frame, "Face already exists!", (250, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 cap.release()
-                cv2.destroyAllWindows()
+                cv2.destroyAllWindows() 
                 P_name_with_extension = files_in_faceDB[i]
                 P_name_parts = P_name_with_extension.split('.')
                 P_name = P_name_parts[0]
